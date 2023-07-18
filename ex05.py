@@ -3,10 +3,11 @@
 import pygame as pg
 import sys
 import random as rd
+import time
 
 from pygame.sprite import AbstractGroup
 
-FONT_PATH = "UDDigiKyokashoN-R.ttc"  #使用するフォント
+FONT_PATH = "ex05/UDDigiKyokashoN-R.ttc"  #使用するフォント
 WIDTH = 1000  #画面の横サイズ
 HEIGHT = 700  #画面の縦サイズ
 
@@ -56,7 +57,7 @@ class Patty(pg.sprite.Sprite):
         pg.sprite.Sprite.__init__(self)
         self.image = rd.choice(__class__.imgs)
         self.rect = self.image.get_rect()
-        self.rect.center = rd.randint(0, WIDTH), 0
+        self.rect.center = rd.randint(25, 724), 0
         self.vy = +3
         self.bound = rd.randint(50, HEIGHT/2)  # 停止位置
         self.state = "down"  # 降下状態or停止状態
@@ -70,31 +71,91 @@ class Patty(pg.sprite.Sprite):
         """
         self.rect.centery += self.vy
 
+
+class Score:
+    #スコアの表示をする
+    def __init__(self):
+        self.font = pg.font.Font(FONT_PATH, 30)
+        self.score = 0 #初期値
+        self.img = self.font.render(f"Score：{self.score}", 0, (0,0,255))
+        self.rect = self.img.get_rect()#スコアの文字位置の設定
+        self.sx = 810 #中心座標
+        self.sy = 85
+    
+    def update(self, score: pg.Surface):
+        self.imgs = self.font.render(f"Score：{self.score}",0,(0,0,255))#後で見返す
+        score.blit(self.imgs,(self.sx,self.sy))
+
+
+class Time:
+    #制限時間の表示をする
+    def __init__(self):
+        self.fonts = pg.font.Font(FONT_PATH, 30)
+        self.limit = 30
+        self.imgs = self.fonts.render(f"Time：{self.limit}", 0, (0,0,255))
+        self.tx = 810 #中心座標
+        self.ty = 115
+
+    def update(self, time: pg.Surface):
+        self.img = self.fonts.render(f"Time：{self.limit}",0,(0,0,255))#後で見返す
+        time.blit(self.img,(self.tx,self.ty))
+
+
+class End(pg.sprite.Sprite):
+    def __init__(self):
+        self.font1 = pg.font.Font(FONT_PATH, 50)
+        self.text = self.font1.render("おつかれ～",True,(255,255,255))
+        self.text_rect = self.text.get_rect()
+        self.text_rect.center = WIDTH//2, HEIGHT//2
+
+    def end(self):
+        screen = pg.display.set_mode((WIDTH,HEIGHT)) 
+        screen.fill((0,0,0))
+        screen.blit(self.text,self.text_rect)
+        pg.display.update()
+        time.sleep(2)
+        return
+
+
 def main():
     screen = pg.display.set_mode((WIDTH,HEIGHT))   # 画面の大きさを設定する
     pg.display.set_caption('YBG')   # 画面のタイトルを設定する
     # font = pg.font.Font(FONT_PATH, 50)  #フォントの設定
-    screen.fill((255, 213, 84))  #画面を次の色で染める
+    bg_image = pg.image.load("ex05/bg_1.png")
+    screen.blit(bg_image,[0,0])
     you = YOU((WIDTH//2, HEIGHT*2/3))
     patties = pg.sprite.Group()
-
+    score = Score()
+    time = Time()
+    end = End()
 
     tmr = 0
     clock = pg.time.Clock()
 
     while True:
-        screen.fill((255, 213, 84))
+        
+        #score.score
         for event in pg.event.get():
-            if event.type == pg.QUIT: return
+            if event.type == pg.QUIT:
+                end.end()
+                return
 
         key_lst = pg.key.get_pressed()
-        you.update(key_lst, screen)
+        
         
         if tmr%200 == 0:  # 200フレームに1回，敵機を出現させる
             patties.add(Patty())
-
+        
+        if tmr%50 == 0:
+            time.limit -= 1
+            time.update(screen)
+        
+        screen.blit(bg_image,[0,0])
+        you.update(key_lst, screen)
         patties.update()
         patties.draw(screen)
+        score.update(screen)
+        time.update(screen)
 
         pg.display.update()
         tmr += 1
