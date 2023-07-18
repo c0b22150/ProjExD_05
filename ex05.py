@@ -107,7 +107,7 @@ class Patty(pg.sprite.Sprite):
         pg.sprite.Sprite.__init__(self)
         self.image = rd.choice(__class__.imgs)
         self.rect = self.image.get_rect()
-        self.rect.center = rd.randint(0, WIDTH), 0
+        self.rect.center = rd.randint(25, 724), 0
         self.vy = +3
 
 
@@ -118,6 +118,7 @@ class Patty(pg.sprite.Sprite):
         引数 screen：画面Surface
         """
         self.rect.centery += self.vy
+
 
 
 class Finish(pg.sprite.Sprite):
@@ -199,7 +200,6 @@ class Finish(pg.sprite.Sprite):
         self.you_rct.center = WIDTH//6 , HEIGHT//50*33  #お前君画像の中心位置を設定
         self.chef_rct.center = WIDTH//6*5 , HEIGHT//50*33  #シェフ画像の中心位置を設定
         self.balloon_rct.center = WIDTH//2 , HEIGHT//4  #ふきだし画像の中心位置を設定
-
     def Evaluation(self,score:int):
         '''
         スコアの評価に関する関数
@@ -244,7 +244,6 @@ class Finish(pg.sprite.Sprite):
         self.finish.update(screen)
         tmr = 0  #タイマー
         clock = pg.time.Clock()
-
         while True:
             if tmr//50 > 3:  #評価画面を開いてから4秒以降の時に実行
                 for event in pg.event.get():
@@ -261,99 +260,9 @@ class Finish(pg.sprite.Sprite):
                 for event in pg.event.get():
                     if event.type == pg.QUIT: return
 
-            pg.display.update()
-            tmr += 1
-            clock.tick(50)
 
 
-
-class Game():
-    def __init__(self):
-        '''
-        初期化を行う関数
-        引数 self:Game自身
-        背景画像の読み込みとインスタンス化
-        '''
-        super().__init__
-        self.time = Time()  #Timeクラスをインスタンス化
-        self.score = Score()  #Scoreクラスをインスタンス化
-        self.bg_img = pg.image.load("ex05/fig/game/bg_1.png")  #背景画像を読み込む
-        self.you = YOU((700//2, HEIGHT*4/5))  #お前君の初期位置を設定
-
-    def game(self):
-        screen = pg.display.set_mode((WIDTH,HEIGHT))
-        patties = pg.sprite.Group()
-        finish = Finish()
-        cheese = pg.sprite.Group()
-        tomatoes = pg.sprite.Group()
-        lettuces = pg.sprite.Group()
-        counter = 0
-        tmr = 0  #タイマー
-        clock = pg.time.Clock()  
-
-        while True:
-            for event in pg.event.get():
-                if event.type == pg.QUIT: return
-            if self.time.limit == 0:
-                return self.score.score
-            
-            #パティに関する部分
-            if tmr%100 == 0:  # 100フレームに1回,パティを出現させる
-                patties.add(Patty())
-            if pg.sprite.spritecollide(self.you, patties, True):
-                self.score.score_up(5)
-                self.score.update(screen)
-                counter +=5
-            #ここまで
-            #チーズに関する部分
-            if tmr%200 == 0:  # 100フレームに1回,チーズを出現させる
-                cheese.add(Cheese())
-            if pg.sprite.spritecollide(self.you, cheese, True):
-                self.score.score_up(15)
-                self.score.update(screen)
-                counter +=15
-            #ここまで
-            #トマトに関する部分
-            if tmr%150 == 50:  #100フレームに1回,トマトを出現させる
-                tomatoes.add(Tomato())
-            if pg.sprite.spritecollide(self.you, tomatoes, True):
-                self.score.score_up(10)
-                self.score.update(screen)
-                counter +=10
-            #ここまで
-            #レタスに関する部分
-            if tmr%150 == 100:  #100フレームに1回,レタスを出現させる
-                lettuces.add(Lettuce())
-            if pg.sprite.spritecollide(self.you, lettuces, True):
-                self.score.score_up(12)
-                self.score.update(screen)
-                counter +=12
-            #ここまで
-
-            if tmr%50 ==0:  #50フレーム毎に実行
-                self.time.limit -= 1  #制限時間を減らす
-                self.time.update(screen)  #制限時間をアップデート
-                self.score.update(screen)  #スコアをアップデート
-
-            if counter >=500:  #カウンター(スコア)が500貯まったら実行
-                self.time.limit += 5  #制限時間を伸ばす
-                counter = 0  #カウンターリセット
-
-            screen.fill((0,0,0))
-            screen.blit(self.bg_img,[0,0])
-            key_lst = pg.key.get_pressed()
-            self.you.update(key_lst,screen)
-            patties.update()
-            patties.draw(screen)
-            cheese.update()
-            cheese.draw(screen)
-            tomatoes.update()
-            tomatoes.draw(screen)
-            lettuces.update()
-            lettuces.draw(screen)
-            self.score.update(screen)
-            self.time.update(screen)
-
+        
         pg.display.update()
         tmr += 1
         clock.tick(50)
@@ -447,6 +356,141 @@ class Score_display():
 
             self.update(screen)
             pg.display.update()
+
+
+class Score:
+    #スコアの表示をする
+    def __init__(self):
+        self.font = pg.font.Font(FONT_PATH, 30)
+        self.score = 0 #初期値
+        self.img = self.font.render(f"Score：{self.score}", 0, (0,0,255))
+        self.rect = self.img.get_rect()#スコアの文字位置の設定
+        self.sx = 810 #中心座標
+        self.sy = 85
+    
+    def update(self, score: pg.Surface):
+        self.imgs = self.font.render(f"Score：{self.score}",0,(0,0,255))#後で見返す
+        score.blit(self.imgs,(self.sx,self.sy))
+
+
+class Time:
+    #制限時間の表示をする
+    def __init__(self):
+        self.fonts = pg.font.Font(FONT_PATH, 30)
+        self.limit = 30
+        self.imgs = self.fonts.render(f"Time：{self.limit}", 0, (0,0,255))
+        self.tx = 810 #中心座標
+        self.ty = 115
+
+    def update(self, time: pg.Surface):
+        self.img = self.fonts.render(f"Time：{self.limit}",0,(0,0,255))#後で見返す
+        time.blit(self.img,(self.tx,self.ty))
+
+
+class End(pg.sprite.Sprite):
+    def __init__(self):
+        self.font1 = pg.font.Font(FONT_PATH, 50)
+        self.text = self.font1.render("おつかれ～",True,(255,255,255))
+        self.text_rect = self.text.get_rect()
+        self.text_rect.center = WIDTH//2, HEIGHT//2
+
+    def end(self):
+        screen = pg.display.set_mode((WIDTH,HEIGHT)) 
+        screen.fill((0,0,0))
+        screen.blit(self.text,self.text_rect)
+        pg.display.update()
+        time.sleep(2)
+        return
+
+class Game():
+    def __init__(self):
+        '''
+        初期化を行う関数
+        引数 self:Game自身
+        背景画像の読み込みとインスタンス化
+        '''
+        super().__init__
+        self.time = Time()  #Timeクラスをインスタンス化
+        self.score = Score()  #Scoreクラスをインスタンス化
+        self.bg_img = pg.image.load("ex05/fig/game/bg_1.png")  #背景画像を読み込む
+        self.you = YOU((700//2, HEIGHT*4/5))  #お前君の初期位置を設定
+
+    def game(self):
+        screen = pg.display.set_mode((WIDTH,HEIGHT))
+        patties = pg.sprite.Group()
+        finish = Finish()
+        cheese = pg.sprite.Group()
+        tomatoes = pg.sprite.Group()
+        lettuces = pg.sprite.Group()
+        counter = 0
+        tmr = 0  #タイマー
+        clock = pg.time.Clock()  
+
+        while True:
+            for event in pg.event.get():
+                if event.type == pg.QUIT: return
+            if self.time.limit == 0:
+                return self.score.score
+            
+            #パティに関する部分
+            if tmr%100 == 0:  # 100フレームに1回,パティを出現させる
+                patties.add(Patty())
+            if pg.sprite.spritecollide(self.you, patties, True):
+                self.score.score_up(5)
+                self.score.update(screen)
+                counter +=5
+            #ここまで
+            #チーズに関する部分
+            if tmr%200 == 0:  # 100フレームに1回,チーズを出現させる
+                cheese.add(Cheese())
+            if pg.sprite.spritecollide(self.you, cheese, True):
+                self.score.score_up(15)
+                self.score.update(screen)
+                counter +=15
+            #ここまで
+            #トマトに関する部分
+            if tmr%150 == 50:  #100フレームに1回,トマトを出現させる
+                tomatoes.add(Tomato())
+            if pg.sprite.spritecollide(self.you, tomatoes, True):
+                self.score.score_up(10)
+                self.score.update(screen)
+                counter +=10
+            #ここまで
+            #レタスに関する部分
+            if tmr%150 == 100:  #100フレームに1回,レタスを出現させる
+                lettuces.add(Lettuce())
+            if pg.sprite.spritecollide(self.you, lettuces, True):
+                self.score.score_up(12)
+                self.score.update(screen)
+                counter +=12
+            #ここまで
+
+            if tmr%50 ==0:  #50フレーム毎に実行
+                self.time.limit -= 1  #制限時間を減らす
+                self.time.update(screen)  #制限時間をアップデート
+                self.score.update(screen)  #スコアをアップデート
+
+            if counter >=500:  #カウンター(スコア)が500貯まったら実行
+                self.time.limit += 5  #制限時間を伸ばす
+                counter = 0  #カウンターリセット
+            screen.fill((0,0,0))
+            screen.blit(self.bg_img,[0,0])
+            key_lst = pg.key.get_pressed()
+            self.you.update(key_lst,screen)
+            patties.update()
+            patties.draw(screen)
+            cheese.update()
+            cheese.draw(screen)
+            tomatoes.update()
+            tomatoes.draw(screen)
+            lettuces.update()
+            lettuces.draw(screen)
+            self.score.update(screen)
+            self.time.update(screen)
+
+        pg.display.update()
+        tmr += 1
+        clock.tick(50)
 
 
 def main():
