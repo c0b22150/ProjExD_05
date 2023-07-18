@@ -115,7 +115,7 @@ def main():
     tmr = 0
     clock = pg.time.Clock()
 
-    while True:
+    while True: 
         screen.fill((255, 213, 84))
         for event in pg.event.get():
             if event.type == pg.QUIT: return
