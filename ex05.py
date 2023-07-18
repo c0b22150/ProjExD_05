@@ -1,5 +1,6 @@
 #cording:utf-8
 
+#from typing import self
 import pygame as pg
 import sys
 import random as rd
@@ -70,6 +71,21 @@ class Patty(pg.sprite.Sprite):
         """
         self.rect.centery += self.vy
 
+
+class Start_countdown:
+    #開始画面の表示
+    def __init__(self):
+        self.moji = pg.font.SysFont("hgp創英角ポップ体",100)
+        self.countdown = 3
+        self.img1 = self.moji.render(f"{self.countdown}",0,(0,0,255))
+        self.cx = WIDTH/2
+        self.cy = HEIGHT/2
+
+    def update(self, screen: pg.Surface):
+        self.img1 = self.moji.render(f"{self.countdown}",0,(0,0,255))
+        screen.blit(self.img1,(self.cx,self.cy))
+        self.countdown -= 1
+
 def main():
     screen = pg.display.set_mode((WIDTH,HEIGHT))   # 画面の大きさを設定する
     pg.display.set_caption('YBG')   # 画面のタイトルを設定する
@@ -77,24 +93,30 @@ def main():
     screen.fill((255, 213, 84))  #画面を次の色で染める
     you = YOU((WIDTH//2, HEIGHT*2/3))
     patties = pg.sprite.Group()
+    countdown = Start_countdown()
 
 
     tmr = 0
     clock = pg.time.Clock()
 
     while True:
-        screen.fill((255, 213, 84))
         for event in pg.event.get():
             if event.type == pg.QUIT: return
 
-        key_lst = pg.key.get_pressed()
-        you.update(key_lst, screen)
-        
-        if tmr%200 == 0:  # 200フレームに1回，敵機を出現させる
-            patties.add(Patty())
+        if tmr//50 < 3 and tmr%50==0:
+            screen.fill((255, 213, 84))
+            countdown.update(screen)
 
-        patties.update()
-        patties.draw(screen)
+        elif tmr//50 >=3 and tmr//50 <= 34:
+            screen.fill((255, 213, 84))
+            key_lst = pg.key.get_pressed()
+            you.update(key_lst, screen)
+            
+            if tmr%200 == 0:  # 200フレームに1回，敵機を出現させる
+                patties.add(Patty())
+
+            patties.update()
+            patties.draw(screen)
 
         pg.display.update()
         tmr += 1
