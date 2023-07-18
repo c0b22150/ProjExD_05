@@ -101,16 +101,13 @@ class YOU(pg.sprite.Sprite):
 
 
 class Patty(pg.sprite.Sprite):
-    imgs = [pg.image.load(f"ex05/fig/patty/{i}.png") for i in range(0, 2)]
-
     def __init__(self):
         pg.sprite.Sprite.__init__(self)
-        self.image = rd.choice(__class__.imgs)
+        self.image = pg.image.load(f"ex05/fig/patty/0.png")
         self.rect = self.image.get_rect()
+         
         self.rect.center = rd.randint(25, 724), 0
         self.vy = +3
-
-
     def update(self):
         """
         敵機を速度ベクトルself.vyに基づき移動（降下）させる
