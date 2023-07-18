@@ -348,6 +348,7 @@ class Finish(pg.sprite.Sprite):
         self.you_rct.center = WIDTH//6 , HEIGHT//50*33  #お前君画像の中心位置を設定
         self.chef_rct.center = WIDTH//6*5 , HEIGHT//50*33  #シェフ画像の中心位置を設定
         self.balloon_rct.center = WIDTH//2 , HEIGHT//4  #ふきだし画像の中心位置を設定
+
     def Evaluation(self,score:int):
         '''
         スコアの評価に関する関数
@@ -355,15 +356,15 @@ class Finish(pg.sprite.Sprite):
         スコアから評価コメントを選び、評価コメントとスコアのrectを設定する
         '''
         num = str(rd.randint(0,9))  #出力する評価コメントの番号をランダムに選ぶ
-        if score == 0:
+        if score <100:
             self.evaluation_txt = self.evaluation_texts[f"X{num}"]  #スコアがX評価の時のコメントをfin_textに入れる
-        elif 0 < score <=20:
+        elif 0 < score <=150:
             self.evaluation_txt = self.evaluation_texts[f"C{num}"]  #スコアがC評価の時のコメントをfin_textに入れる
-        elif 0 < score <=40:
+        elif 0 < score <=300:
             self.evaluation_txt = self.evaluation_texts[f"B{num}"]  #スコアがB評価の時のコメントをfin_textに入れる
-        elif 0 < score <=60:
+        elif 0 < score <=450:
             self.evaluation_txt = self.evaluation_texts[f"A{num}"]  #スコアがA評価の時のコメントをfin_textに入れる
-        elif 100 < score:
+        elif 600 < score:
             self.evaluation_txt = self.evaluation_texts[f"S{num}"]  #スコアがS評価の時のコメントをfin_textに入れる
         self.evaluation_img = self.font.render(f"{self.evaluation_txt}", True, (0, 0, 0))  #コメント
         self.score_text = self.font.render(f"Score: {score}", True, (0, 0, 0))  #
@@ -407,9 +408,25 @@ class Finish(pg.sprite.Sprite):
             else:
                 for event in pg.event.get():
                     if event.type == pg.QUIT: return 
-        pg.display.update()
-        tmr += 1
-        clock.tick(50)
+            pg.display.update()
+            tmr += 1
+            clock.tick(50)
+
+
+class Start_countdown:
+    #開始画面の表示
+    def __init__(self):
+        self.moji = pg.font.SysFont("hgp創英角ポップ体",100)
+        self.countdown = 3
+        self.img1 = self.moji.render(f"{self.countdown}",0,(0,0,255))
+        self.cx = WIDTH/2
+        self.cy = HEIGHT/2
+
+    def update(self, screen: pg.Surface ,time):
+        self.img1 = self.moji.render(f"{self.countdown}",0,(0,0,255))
+        screen.blit(self.img1,(self.cx,self.cy))
+        if time%50 == 49:
+            self.countdown -= 1
 
 
 class Score_display():
@@ -513,7 +530,15 @@ class Score:
         self.sy = 85
 
 
-    
+    def score_up(self,add):
+        '''
+        スコアに点数を加算する関数
+        引数 self:Score自身
+             add :加算する点数
+        '''
+        self.score += add  #スコアの値を変更する
+
+
     def update(self, score: pg.Surface):
         self.imgs = self.font.render(f"Score：{self.score}",0,(0,0,255))#後で見返す
         score.blit(self.imgs,(self.sx,self.sy))
@@ -573,7 +598,7 @@ class Game():
     def game(self):
         screen = pg.display.set_mode((WIDTH,HEIGHT))
         patties = pg.sprite.Group()
-        finish = Finish()
+        countdown = Start_countdown()
         cheese = pg.sprite.Group()
         tomatoes = pg.sprite.Group()
         lettuces = pg.sprite.Group()
@@ -584,8 +609,22 @@ class Game():
         while True:
             for event in pg.event.get():
                 if event.type == pg.QUIT: return
+
             if self.time.limit == 0:
                 return self.score.score
+            
+            if tmr//50 < 3 and tmr%50==0:
+                Flag = True
+                while Flag:
+                    screen.fill((0,0,0))
+                    screen.blit(self.bg_img,[0,0])
+                    countdown.update(screen,tmr)
+                    pg.display.update()
+                    tmr += 1
+                    clock.tick(50)
+                    if tmr//50 == 3:
+                        Flag = False
+                        break
             
             #パティに関する部分
             if tmr%100 == 0:  # 100フレームに1回,パティを出現させる
