@@ -10,7 +10,8 @@ from pygame.sprite import AbstractGroup
 FONT_PATH = "ex05/UDDigiKyokashoN-R.ttc"  #使用するフォント
 WIDTH = 1000  #画面の横サイズ
 HEIGHT = 700  #画面の縦サイズ
-RECORD_PATH = "ex05/record.txt"
+RECORD_PATH = "ex05/record.txt"  #スコアレコードのパス
+MUSIC_PATH = "ex05/sound/0.mp3"
 
 def check_position(X,Y,rct):
     '''
@@ -31,7 +32,7 @@ def check_bound(obj: pg.Rect) -> tuple[bool, bool]:
     戻り値：横方向，縦方向のはみ出し判定結果（画面内：True／画面外：False）
     """
     yoko, tate = True, True
-    if obj.left < 2.5 or 797.5 < obj.right:  # 横方向のはみ出し判定
+    if obj.left < 4.5 or 793 < obj.right:  # 横方向のはみ出し判定
         yoko = False
     if obj.top < 0 or HEIGHT < obj.bottom:  # 縦方向のはみ出し判定
         tate = False
@@ -91,7 +92,7 @@ class YOU(pg.sprite.Sprite):
                     self.rect.move_ip(-self.speed*mv[0], -self.speed*mv[1]) 
                     sum_mv[0] -= mv[0]
         self.rect.move_ip(sum_mv)
-        print(-self.speed*mv[0],-self.speed*mv[1])
+
         screen.blit(self.image, self.rect)
 
         if not (sum_mv[0] == 0 and sum_mv[1] == 0):
@@ -107,7 +108,8 @@ class Patty(pg.sprite.Sprite):
         self.rect = self.image.get_rect()
          
         self.rect.center = rd.randint(25, 724), 0
-        self.vy = +3
+        self.vy = +4
+
     def update(self):
         """
         敵機を速度ベクトルself.vyに基づき移動（降下）させる
@@ -115,6 +117,7 @@ class Patty(pg.sprite.Sprite):
         引数 screen：画面Surface
         """
         self.rect.centery += self.vy
+
 
 class Cheese(pg.sprite.Sprite):
     """
@@ -136,6 +139,27 @@ class Cheese(pg.sprite.Sprite):
         self.rect.centery += self.vy  #チーズの座標を再設定
 
 
+class Bun(pg.sprite.Sprite):
+    """
+    バンズに関するクラス
+        def __init__
+        def update
+    """
+    def __init__(self):
+        pg.sprite.Sprite.__init__(self)
+        num = rd.randint(2,3)
+        self.image = pg.image.load(f"ex05/fig/patty/{num}.png")  #バンズ画像の読み込み
+        self.rect = self.image.get_rect()  #画像のrectを取得する
+        self.rect.center = rd.randint(50, 650), 0  #落ちてくる位置をランダムに設定
+        self.vy = +3  #バンズの落ちてくるスピード
+
+    def update(self):
+        """
+        バンズのy座標を更新する関数
+        """
+        self.rect.centery += self.vy  #バンズの座標を再設定
+
+
 class Tomato(pg.sprite.Sprite):
     """
     トマトに関するクラス
@@ -144,10 +168,10 @@ class Tomato(pg.sprite.Sprite):
     """
     def __init__(self):
         pg.sprite.Sprite.__init__(self)
-        self.image = pg.image.load(f"ex05/fig/patty/2.png")  #トマトに関するクラス
+        self.image = pg.image.load(f"ex05/fig/patty/4.png")  #トマトに関するクラス
         self.rect = self.image.get_rect()  #画像のrectを取得する
         self.rect.center = rd.randint(50, 650), 0  #落ちてくる位置をランダムに設定
-        self.vy = +3  #トマトの落ちてくるスピード
+        self.vy = +4  #トマトの落ちてくるスピード
 
     def update(self):
         """
@@ -164,7 +188,7 @@ class Lettuce(pg.sprite.Sprite):
     """
     def __init__(self):
         pg.sprite.Sprite.__init__(self)
-        self.image = pg.image.load(f"ex05/fig/patty/3.png")  #レタスに関するクラス
+        self.image = pg.image.load(f"ex05/fig/patty/5.png")  #レタスに関するクラス
         self.rect = self.image.get_rect()  #画像のrectを取得する
         self.rect.center = rd.randint(50, 650), 0  #落ちてくる位置をランダムに設定
         self.vy = +3  #レタスの落ちてくるスピード
@@ -176,94 +200,21 @@ class Lettuce(pg.sprite.Sprite):
         self.rect.centery += self.vy  #レタスの座標を再設定
 
 
-class Score_display():
+class Garbage(pg.sprite.Sprite):
+    """
+    ゴミに関するクラス
+        def __init__
+        def update
+    """
     def __init__(self):
-        super().__init__
-        self.font = pg.font.Font(FONT_PATH, 48)  #使用するフォントの設定
-        self.record_1 = "-----"  #
-        self.record_2 = "-----"  #
-        self.record_3 = "-----"  #
-        self.record_4 = "-----"  #
-        self.record_5 = "-----"  #
-        self.bg_img = pg.image.load("ex05/fig/score/bg_0.png")  #背景画像を読み込む
-        self.score_0 = pg.image.load("ex05/fig/score/0.png")
-        self.score_1 = pg.image.load("ex05/fig/score/1.png")
-        self.score_2 = pg.image.load("ex05/fig/score/2.png")
-        self.record_1_img = self.font.render(f"1：　{self.record_1}", True, (0, 0, 0))
-        self.record_2_img = self.font.render(f"2：　{self.record_2}", True, (0, 0, 0))
-        self.record_3_img = self.font.render(f"3：　{self.record_3}", True, (0, 0, 0))
-        self.record_4_img = self.font.render(f"4：　{self.record_4}", True, (0, 0, 0))
-        self.record_5_img = self.font.render(f"5：　{self.record_5}", True, (0, 0, 0))
-        self.rect_0 = self.score_0.get_rect()
-        self.rect_1 = self.score_1.get_rect()
-        self.rect_2 = self.score_2.get_rect()
-        self.record_1_rect = self.record_1_img.get_rect()
-        self.record_2_rect = self.record_2_img.get_rect()
-        self.record_3_rect = self.record_3_img.get_rect()
-        self.record_4_rect = self.record_4_img.get_rect()
-        self.record_5_rect = self.record_5_img.get_rect()
-        self.rect_0.center = WIDTH//2 , HEIGHT//2
-        self.rect_1.center = WIDTH//2 , HEIGHT//8
-        self.rect_2.center = WIDTH//11 , HEIGHT//50*47
-        self.record_1_rect = WIDTH//3 , HEIGHT//8*2
-        self.record_2_rect = WIDTH//3 , HEIGHT//8*3
-        self.record_3_rect = WIDTH//3 , HEIGHT//8*4
-        self.record_4_rect = WIDTH//3 , HEIGHT//8*5
-        self.record_5_rect = WIDTH//3 , HEIGHT//8*6
+        pg.sprite.Sprite.__init__(self)
+        self.image = pg.image.load("ex05/fig/trash/0.png")
+        self.rect = self.image.get_rect()
+        self.rect.center = rd.randint(50,650),0
+        self.vy = +rd.randint(1,4)
 
-    def f_read(self):
-        with open(RECORD_PATH) as f:
-            l_strip = [s.rstrip() for s in f.readlines()]
-            memo = sorted(l_strip,reverse=True)
-        self.record_1 = memo[0]
-        self.record_2 = memo[1]
-        self.record_3 = memo[2]
-        self.record_4 = memo[3]
-        self.record_5 = memo[4]
-        self.record_1_img = self.font.render(f"1：　{self.record_1}", True, (0, 0, 0))
-        self.record_2_img = self.font.render(f"2：　{self.record_2}", True, (0, 0, 0))
-        self.record_3_img = self.font.render(f"3：　{self.record_3}", True, (0, 0, 0))
-        self.record_4_img = self.font.render(f"4：　{self.record_4}", True, (0, 0, 0))
-        self.record_5_img = self.font.render(f"5：　{self.record_5}", True, (0, 0, 0))
-
-    def f_sort(self,score):
-        with open(RECORD_PATH) as f:
-            l_strip = [s.rstrip() for s in f.readlines()]
-            memo = sorted(l_strip,reverse=True)
-        if (memo[4] < str(score) and memo[4] != "-----") or (memo[4] == "-----"):
-            memo[4] = str(score)
-            memo = sorted(memo,reverse=True)
-        with open(RECORD_PATH,"w") as f:
-            for i in memo:
-                f.write("%s\n"%i)
-
-    def update(self,screen:pg.Surface):
-        self.f_read()
-        screen.blit(self.bg_img,[0,0])
-        screen.blit(self.score_0,self.rect_0)
-        screen.blit(self.score_1,self.rect_1)
-        screen.blit(self.score_2,self.rect_2)
-        screen.blit(self.record_1_img,self.record_1_rect)
-        screen.blit(self.record_2_img,self.record_2_rect)
-        screen.blit(self.record_3_img,self.record_3_rect)
-        screen.blit(self.record_4_img,self.record_4_rect)
-        screen.blit(self.record_5_img,self.record_5_rect)
-        
-    def display(self):
-        screen = pg.display.set_mode((WIDTH,HEIGHT))   # 画面の大きさを設定する
-        self.font = pg.font.Font(FONT_PATH, 48)  #使用するフォントの設定
-        self.f_read()
-
-        while True:
-            mouseX, mouseY = pg.mouse.get_pos()  #マウスの位置を取得
-            for event in pg.event.get():
-                if event.type == pg.KEYDOWN:  #閉じるボタンを押されたら終了
-                    if event.key == pg.K_ESCAPE:return
-                if(check_position(mouseX,mouseY,self.rect_2) == 1):
-                    if event.type == pg.MOUSEBUTTONDOWN:return
-
-            self.update(screen)
-            pg.display.update()
+    def update(self):
+        self.rect.centery += self.vy
 
 
 class Finish(pg.sprite.Sprite):
@@ -353,13 +304,13 @@ class Finish(pg.sprite.Sprite):
         スコアから評価コメントを選び、評価コメントとスコアのrectを設定する
         '''
         num = str(rd.randint(0,9))  #出力する評価コメントの番号をランダムに選ぶ
-        if score <100:
+        if score <150:
             self.evaluation_txt = self.evaluation_texts[f"X{num}"]  #スコアがX評価の時のコメントをfin_textに入れる
-        elif 0 < score <=150:
+        elif 0 < score <=250:
             self.evaluation_txt = self.evaluation_texts[f"C{num}"]  #スコアがC評価の時のコメントをfin_textに入れる
-        elif 0 < score <=300:
-            self.evaluation_txt = self.evaluation_texts[f"B{num}"]  #スコアがB評価の時のコメントをfin_textに入れる
         elif 0 < score <=450:
+            self.evaluation_txt = self.evaluation_texts[f"B{num}"]  #スコアがB評価の時のコメントをfin_textに入れる
+        elif 0 < score <=600:
             self.evaluation_txt = self.evaluation_texts[f"A{num}"]  #スコアがA評価の時のコメントをfin_textに入れる
         elif 600 < score:
             self.evaluation_txt = self.evaluation_texts[f"S{num}"]  #スコアがS評価の時のコメントをfin_textに入れる
@@ -415,12 +366,12 @@ class Start_countdown:
     def __init__(self):
         self.moji = pg.font.SysFont("hgp創英角ポップ体",100)
         self.countdown = 3
-        self.img1 = self.moji.render(f"{self.countdown}",0,(0,0,255))
+        self.img1 = self.moji.render(f"{self.countdown}",0,(0,0,0))
         self.cx = WIDTH/2
         self.cy = HEIGHT/2
 
     def update(self, screen: pg.Surface ,time):
-        self.img1 = self.moji.render(f"{self.countdown}",0,(0,0,255))
+        self.img1 = self.moji.render(f"{self.countdown}",0,(0,0,0))
         screen.blit(self.img1,(self.cx,self.cy))
         if time%50 == 49:
             self.countdown -= 1
@@ -464,7 +415,7 @@ class Score_display():
     def f_read(self):
         with open(RECORD_PATH) as f:
             l_strip = [s.rstrip() for s in f.readlines()]
-            memo = sorted(l_strip,reverse=True)
+            memo = l_strip
         self.record_1 = memo[0]
         self.record_2 = memo[1]
         self.record_3 = memo[2]
@@ -479,10 +430,24 @@ class Score_display():
     def f_sort(self,score):
         with open(RECORD_PATH) as f:
             l_strip = [s.rstrip() for s in f.readlines()]
-            memo = sorted(l_strip,reverse=True)
-        if (memo[4] < str(score) and memo[4] != "-----") or (memo[4] == "-----"):
+            memo = l_strip
+            memo_int = []
+        if (memo[4] < str(score) and memo[4] != "-----") or (memo[4] == "-----"):  #レコードに空きがあるもしくは一番下のレコードより値が大きい時
             memo[4] = str(score)
             memo = sorted(memo,reverse=True)
+            print(memo)
+            for i in range(len(memo)):
+                if memo[i] == "-----":
+                    break
+                else:
+                    memo_int.append(int(memo[i]))
+                    num = i
+            memo_int = sorted(memo_int,reverse=True)
+            print(memo_int)
+            for i in range(num+1):
+                memo[i] = str(memo_int[i])
+                print(memo[i])
+            print(memo)            
         with open(RECORD_PATH,"w") as f:
             for i in memo:
                 f.write("%s\n"%i)
@@ -507,7 +472,7 @@ class Score_display():
         while True:
             mouseX, mouseY = pg.mouse.get_pos()  #マウスの位置を取得
             for event in pg.event.get():
-                if event.type == pg.KEYDOWN:  #閉じるボタンを押されたら終了
+                if event.type == pg.KEYDOWN:  #ESCを押されたら終了
                     if event.key == pg.K_ESCAPE:return
                 if(check_position(mouseX,mouseY,self.rect_2) == 1):
                     if event.type == pg.MOUSEBUTTONDOWN:return
@@ -526,7 +491,6 @@ class Score:
         self.sx = 810 #中心座標
         self.sy = 85
 
-
     def score_up(self,add):
         '''
         スコアに点数を加算する関数
@@ -534,7 +498,6 @@ class Score:
              add :加算する点数
         '''
         self.score += add  #スコアの値を変更する
-
 
     def update(self, score: pg.Surface):
         self.imgs = self.font.render(f"Score：{self.score}",0,(0,0,255))#後で見返す
@@ -546,7 +509,7 @@ class Time:
     def __init__(self):
         self.fonts = pg.font.Font(FONT_PATH, 30)
         self.limit = 30
-        self.imgs = self.fonts.render(f"Time：{self.limit}", 0, (0,0,255))
+        self.imgs = self.fonts.render(f"Time：{self.limit}", 0, (255,255,255))
         self.tx = 810 #中心座標
         self.ty = 115
 
@@ -559,7 +522,7 @@ class Time:
         self.score += add  #スコアの値を変更する
 
     def update(self, time: pg.Surface):
-        self.img = self.fonts.render(f"Time：{self.limit}",0,(0,0,255))#後で見返す
+        self.img = self.fonts.render(f"Time：{self.limit}",0,(255,255,255))#後で見返す
         time.blit(self.img,(self.tx,self.ty))
 
 
@@ -597,8 +560,10 @@ class Game():
         patties = pg.sprite.Group()
         countdown = Start_countdown()
         cheese = pg.sprite.Group()
+        buns = pg.sprite.Group()
         tomatoes = pg.sprite.Group()
         lettuces = pg.sprite.Group()
+        garbages = pg.sprite.Group()
         counter = 0
         tmr = 0  #タイマー
         clock = pg.time.Clock()  
@@ -632,28 +597,47 @@ class Game():
                 counter +=5
             #ここまで
             #チーズに関する部分
-            if tmr%200 == 0:  # 100フレームに1回,チーズを出現させる
+            if tmr%300 == 0:  # 300フレームに1回,チーズを出現させる
                 cheese.add(Cheese())
             if pg.sprite.spritecollide(self.you, cheese, True):
+                self.score.score_up(30)
+                self.score.update(screen)
+                counter +=30
+            #ここまで
+            #バンズに関する部分
+            if tmr%200 == 0:  # 200フレームに1回,バンズを出現させる
+                buns.add(Bun())
+            if pg.sprite.spritecollide(self.you, buns, True):
+                self.score.score_up(20)
+                self.score.update(screen)
+                counter +=20
+            #ここまで
+            #トマトに関する部分
+            if tmr%150 == 50:  #150フレームに1回,トマトを出現させる
+                tomatoes.add(Tomato())
+            if pg.sprite.spritecollide(self.you, tomatoes, True):
                 self.score.score_up(15)
                 self.score.update(screen)
                 counter +=15
             #ここまで
-            #トマトに関する部分
-            if tmr%150 == 50:  #100フレームに1回,トマトを出現させる
-                tomatoes.add(Tomato())
-            if pg.sprite.spritecollide(self.you, tomatoes, True):
+            #レタスに関する部分
+            if tmr%150 == 100:  #150フレームに1回,レタスを出現させる
+                lettuces.add(Lettuce())
+            if pg.sprite.spritecollide(self.you, lettuces, True):
                 self.score.score_up(10)
                 self.score.update(screen)
                 counter +=10
             #ここまで
-            #レタスに関する部分
-            if tmr%150 == 100:  #100フレームに1回,レタスを出現させる
-                lettuces.add(Lettuce())
-            if pg.sprite.spritecollide(self.you, lettuces, True):
-                self.score.score_up(12)
+            #ゴミに関する部分
+            if tmr%100 == 75:  #100フレームに1回,レタスを出現させる
+                garbages.add(Garbage())
+            if pg.sprite.spritecollide(self.you, garbages, True):
+                if(self.score.score<15):
+                    self.score.score = 0  
+                else:  
+                    self.score.score_up(-15)
+                self.time.limit -= 1
                 self.score.update(screen)
-                counter +=12
             #ここまで
 
             if tmr%50 ==0:  #50フレーム毎に実行
@@ -661,9 +645,10 @@ class Game():
                 self.time.update(screen)  #制限時間をアップデート
                 self.score.update(screen)  #スコアをアップデート
 
-            if counter >=500:  #カウンター(スコア)が500貯まったら実行
+            if counter >=200:  #カウンター(スコア)が500貯まったら実行
                 self.time.limit += 5  #制限時間を伸ばす
                 counter = 0  #カウンターリセット
+
             screen.fill((0,0,0))
             screen.blit(self.bg_img,[0,0])
             key_lst = pg.key.get_pressed()
@@ -672,16 +657,110 @@ class Game():
             patties.draw(screen)
             cheese.update()
             cheese.draw(screen)
+            buns.update()
+            buns.draw(screen)
             tomatoes.update()
             tomatoes.draw(screen)
             lettuces.update()
             lettuces.draw(screen)
+            garbages.update()
+            garbages.draw(screen)
             self.score.update(screen)
             self.time.update(screen)
 
             pg.display.update()
             tmr += 1
             clock.tick(50)
+
+
+class Rule():
+    comments={
+        0:"おまえ君を操作して具材を集めよう",
+        1:"沢山拾うとおまえ君も喜ぶよ！",
+        2:"具材ごとに違いがあるよ^^",
+        3:"やさしいシェフに評価してもらおう！",
+        4:"おまえ君の説明だよ☆彡",
+        5:"シェフの説明だよ(*'ω'*)"
+    }
+
+    def __init__(self):
+        num = 0
+        self.font = pg.font.Font(FONT_PATH, 40)  #使用するフォントの設定
+        self.comment_txt = self.comments[0]  #evaluation_txtを先に定義
+        self.text = self.font.render(f"{self.comment_txt}", True, (0, 0, 0)) 
+        self.num = self.font.render(f"{num+1}", True, (0, 0, 0))
+        self.bg_img = pg.image.load("ex05/fig/rule/bg_0.png")
+        self.image = pg.image.load(f"ex05/fig/rule/{num}.png")
+        self.left = pg.image.load("ex05/fig/rule/left.png")
+        self.right = pg.image.load("ex05/fig/rule/right.png")
+        self.back = pg.image.load("ex05/fig/rule/back.png")
+        self.msg = pg.image.load("ex05/fig/rule/msg.png")
+        self.title = pg.image.load("ex05/fig/rule/title.png")
+        self.text_rect = self.text.get_rect()
+        self.text_rect.center = WIDTH//2 , HEIGHT//20*17
+        self.image_rect = self.image.get_rect()
+        self.image_rect.center = WIDTH//2 , HEIGHT//20*9
+        self.left_rect = self.left.get_rect()
+        self.left_rect.center = WIDTH//20 , HEIGHT//2
+        self.right_rect = self.right.get_rect()
+        self.right_rect.center = WIDTH//20*19 , HEIGHT//2
+        self.back_rect = self.back.get_rect()
+        self.back_rect.center = WIDTH//13 , HEIGHT//50*47
+        self.num_rect = self.num.get_rect()
+        self.num_rect.center = WIDTH//13*12 , HEIGHT//50*47
+        self.msg_rect = self.msg.get_rect()
+        self.msg_rect.center = WIDTH//2 , HEIGHT//20*17
+        self.title_rect = self.title.get_rect()
+        self.title_rect.center = WIDTH//2 , HEIGHT//10
+
+    def update(self,screen:pg.Surface):
+        screen.blit(self.bg_img,[0,0])
+        screen.blit(self.image,self.image_rect)
+        screen.blit(self.left,self.left_rect)
+        screen.blit(self.right,self.right_rect)
+        screen.blit(self.back,self.back_rect)
+        screen.blit(self.msg,self.msg_rect)
+        screen.blit(self.text,self.text_rect)
+        screen.blit(self.num,self.num_rect)
+        screen.blit(self.title,self.title_rect)
+
+    def rule(self):
+        num = 0
+        screen = pg.display.set_mode((WIDTH,HEIGHT))
+        self.font = pg.font.Font(FONT_PATH, 40)  #使用するフォントの設定
+        self.update(screen)
+
+        while True:
+            mouseX, mouseY = pg.mouse.get_pos()  #マウスの位置を取得
+            for event in pg.event.get():
+                if event.type == pg.KEYDOWN:  #閉じるボタンを押されたら終了
+                    if event.key == pg.K_ESCAPE:return
+                if(check_position(mouseX,mouseY,self.back_rect) == 1):
+                    if event.type == pg.MOUSEBUTTONDOWN:return
+                if(check_position(mouseX,mouseY,self.left_rect) == 1):  #左矢印がクリックされた時
+                    if event.type == pg.MOUSEBUTTONDOWN:
+                        if num == 0:
+                            num = 5
+                        else:
+                            num = num - 1
+                        self.comment_txt = self.comments[num] 
+                        self.text = self.font.render(f"{self.comment_txt}", True, (0, 0, 0)) 
+                        self.image = pg.image.load(f"ex05/fig/rule/{num}.png")
+                        self.num = self.font.render(f"{num+1}", True, (0, 0, 0))
+                        self.update(screen)
+                if(check_position(mouseX,mouseY,self.right_rect) == 1):  #右矢印がクリックされた時
+                    if event.type == pg.MOUSEBUTTONDOWN:
+                        if num == 5:
+                            num = 0
+                        else:
+                            num = num + 1
+                        self.comment_txt = self.comments[num] 
+                        self.text = self.font.render(f"{self.comment_txt}", True, (0, 0, 0))
+                        self.image = pg.image.load(f"ex05/fig/rule/{num}.png") 
+                        self.num = self.font.render(f"{num+1}", True, (0, 0, 0))
+                        self.update(screen)   
+
+            pg.display.update()
 
 
 def main():
@@ -692,6 +771,7 @@ def main():
     score_dis = Score_display()
     finish = Finish()  #Finishクラスのインスタンス化
     end = End()
+    rule = Rule()
 
     #ここからスタート画面
     image_state_0 = 0
@@ -700,8 +780,12 @@ def main():
     bg_image = pg.image.load("ex05/fig/start_display/bg_0.png")
     start_image = pg.image.load(f"ex05/fig/start_display/start_{image_state_0}.png")
     score_image = pg.image.load(f"ex05/fig/start_display/score_{image_state_1}.png")
-    playrule_image = pg.image.load(f"ex05/fig/start_display/play_rule_{image_state_2}.png")
+    play_rule_image = pg.image.load(f"ex05/fig/start_display/play_rule_{image_state_2}.png")
     title_image = pg.image.load("ex05/fig/start_display/title.png")
+
+    pg.mixer.init(frequency = 44100)    # 初期設定
+    pg.mixer.music.load(MUSIC_PATH)     # 音楽ファイルの読み込み
+    pg.mixer.music.play(-1)              # 音楽の再生回数(1回)
 
     #ゲーム起動時画面　ここから
     title_image_rct = title_image.get_rect()
@@ -710,8 +794,8 @@ def main():
     start_image_rct.center = WIDTH//2,HEIGHT//12*6
     score_image_rct = score_image.get_rect()
     score_image_rct.center = WIDTH//2,HEIGHT//12*8
-    playrule_image_rct = playrule_image.get_rect()
-    playrule_image_rct.center = WIDTH//2,HEIGHT//12*10
+    play_rule_image_rct = play_rule_image.get_rect()
+    play_rule_image_rct.center = WIDTH//2,HEIGHT//12*10
     #ゲーム起動時画面　ここまで
 
     screen.blit(bg_image,[0,0])
@@ -723,10 +807,12 @@ def main():
 
         for event in pg.event.get():
             if event.type == pg.QUIT:
+                pg.mixer.music.stop() 
                 end.end()
                 fin()            
             if event.type == pg.KEYDOWN:  # キーを押したとき
                 if event.key == pg.K_ESCAPE:
+                    pg.mixer.music.stop() 
                     end.end()
                     fin()
         if(image_state_0 == 1):
@@ -749,25 +835,25 @@ def main():
         if(image_state_2 == 1):
             if event.type == pg.MOUSEBUTTONDOWN:
                 print("説明画面！")
-                # rule()
+                rule.__init__()
+                rule.rule()
                 screen = pg.display.set_mode((WIDTH,HEIGHT))
                 screen.blit(bg_image,[0,0])
                 screen.blit(title_image,title_image_rct)
 
         image_state_0 = check_position(mouseX,mouseY,start_image_rct)    
         image_state_1 = check_position(mouseX,mouseY,score_image_rct)
-        image_state_2 = check_position(mouseX,mouseY,playrule_image_rct)
+        image_state_2 = check_position(mouseX,mouseY,play_rule_image_rct)
 
         start_image = pg.image.load(f"ex05/fig/start_display/start_{image_state_0}.png")
         score_image = pg.image.load(f"ex05/fig/start_display/score_{image_state_1}.png")
-        playrule_image = pg.image.load(f"ex05/fig/start_display/play_rule_{image_state_2}.png")
+        play_rule_image = pg.image.load(f"ex05/fig/start_display/play_rule_{image_state_2}.png")
 
         screen.blit(start_image,start_image_rct)
         screen.blit(score_image,score_image_rct)
-        screen.blit(playrule_image,playrule_image_rct)
+        screen.blit(play_rule_image,play_rule_image_rct)
 
         pg.display.update()
-
 
 if __name__ == '__main__':
     pg.init()  #pygameの初期化
