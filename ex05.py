@@ -855,6 +855,7 @@ def main():
 
         pg.display.update()
 
+
 if __name__ == '__main__':
     pg.init()  #pygameの初期化
     main()
