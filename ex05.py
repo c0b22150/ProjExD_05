@@ -1,17 +1,17 @@
 #cording:utf-8
 
-import pygame as pg
 import sys
 import random as rd
 import time
 
+import pygame as pg
 from pygame.sprite import AbstractGroup
 
-FONT_PATH = "ex05/UDDigiKyokashoN-R.ttc"  #使用するフォント
 WIDTH = 1000  #画面の横サイズ
 HEIGHT = 700  #画面の縦サイズ
+FONT_PATH = "ex05/UDDigiKyokashoN-R.ttc"  #使用するフォント
 RECORD_PATH = "ex05/record.txt"  #スコアレコードのパス
-MUSIC_PATH = "ex05/sound/0.mp3"
+MUSIC_PATH = "ex05/sound/0.mp3"  #musicのパス
 
 def check_position(X,Y,rct):
     '''
@@ -51,6 +51,9 @@ def fin():
 class YOU(pg.sprite.Sprite):
     '''
     お前君についてのクラス
+        delta
+        def __init__
+        def update
     '''
     delta = {  #押すキーと移動量
         pg.K_d:(+5,0),  #d_keyを押した時に右に進む
@@ -63,17 +66,17 @@ class YOU(pg.sprite.Sprite):
         引数:お前君画像ファイル名の番号
         """
         super().__init__()
-        img0 = pg.transform.rotozoom(pg.image.load(f"ex05/fig/omae/0.png"), 0, 2)  # 左向き
+        img0 = pg.transform.rotozoom(pg.image.load(f"ex05/fig/you/0.png"), 0, 2)  # 左向き
         img1 = pg.transform.flip(img0, True, False)  # 右向き
         self.imgs = {
             (-5, 0): img1,  # 右
             (+5, 0): img0,  # 左
         }
-        self.dire = (+5, 0)
-        self.image = self.imgs[self.dire]
-        self.rect = self.image.get_rect()
-        self.rect.center = xy
-        self.speed = 1/2
+        self.dire = (+5, 0)  #画像を選択
+        self.image = self.imgs[self.dire]  #画像の読み込み
+        self.rect = self.image.get_rect()  #おまえくんのrectを取得
+        self.rect.center = xy  #おまえくんの中心位置の設定
+        self.speed = 1/2  #おまえくんのスピード
 
     def update(self, key_lst: list[bool], screen: pg.Surface):
         """
@@ -486,7 +489,7 @@ class Score:
     def __init__(self):
         self.font = pg.font.Font(FONT_PATH, 30)
         self.score = 0 #初期値
-        self.img = self.font.render(f"Score：{self.score}", 0, (0,0,255))
+        self.img = self.font.render(f"Score：{self.score}", 0, (255,255,255))
         self.rect = self.img.get_rect()#スコアの文字位置の設定
         self.sx = 810 #中心座標
         self.sy = 85
@@ -500,7 +503,7 @@ class Score:
         self.score += add  #スコアの値を変更する
 
     def update(self, score: pg.Surface):
-        self.imgs = self.font.render(f"Score：{self.score}",0,(0,0,255))#後で見返す
+        self.imgs = self.font.render(f"Score：{self.score}",0,(255,255,255))#後で見返す
         score.blit(self.imgs,(self.sx,self.sy))
 
 
